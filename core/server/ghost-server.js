@@ -1,6 +1,7 @@
 // # Ghost Server
 // Handles the creation of an HTTP Server for Ghost
 var debug = require('ghost-ignition').debug('server'),
+    info = require('ghost-ignition').info('server'),
     Promise = require('bluebird'),
     fs = require('fs-extra'),
     path = require('path'),
@@ -45,7 +46,9 @@ GhostServer.prototype.start = function (externalApp) {
             permissions: '660'
         };
 
-    debug("PORT=" + config.get('PORT') + ", server.port=" + config.get('server').port + ";");
+    const logStr = "env.PORT=" + process.env.PORT + ", PORT=" + config.get('PORT') + ", server.port=" + config.get('server').port + ";"
+    info(logStr);
+    common.logging.info(logStr);
     self.httpPort = config.get('PORT'); // config.get('server').port
 
     return new Promise(function (resolve, reject) {
