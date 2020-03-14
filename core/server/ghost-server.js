@@ -18,6 +18,7 @@ var debug = require('ghost-ignition').debug('server'),
 function GhostServer(rootApp) {
     this.rootApp = rootApp;
     this.httpServer = null;
+    this.httpPort = 5000;
     this.connections = {};
     this.connectionId = 0;
 
@@ -44,6 +45,9 @@ GhostServer.prototype.start = function (externalApp) {
             permissions: '660'
         };
 
+    debug("PORT=" + config.get('PORT') + ", server.port=" + config.get('server').port + ";");
+    self.httpPort = config.get('PORT'); // config.get('server').port
+
     return new Promise(function (resolve, reject) {
         if (Object.prototype.hasOwnProperty.call(config.get('server'), 'socket')) {
             socketConfig = config.get('server').socket;
@@ -67,7 +71,7 @@ GhostServer.prototype.start = function (externalApp) {
             config.set('server:socket', socketValues);
         } else {
             self.httpServer = rootApp.listen(
-                config.get('PORT'), // config.get('server').port
+                self.httpPort,
                 config.get('server').host
             );
         }
@@ -78,7 +82,7 @@ GhostServer.prototype.start = function (externalApp) {
             if (error.errno === 'EADDRINUSE') {
                 ghostError = new common.errors.GhostError({
                     message: common.i18n.t('errors.httpServer.addressInUse.error'),
-                    context: common.i18n.t('errors.httpServer.addressInUse.context', {port: config.get('server').port}),
+                    context: common.i18n.t('errors.httpServer.addressInUse.context', {port: self.httpPort}),
                     help: common.i18n.t('errors.httpServer.addressInUse.help')
                 });
             } else {
@@ -199,7 +203,7 @@ GhostServer.prototype.logStartMessages = function () {
         common.logging.info(common.i18n.t('notices.httpServer.ghostIsRunningIn', {env: config.get('env')}));
         common.logging.info(common.i18n.t('notices.httpServer.listeningOn', {
             host: config.get('server').socket || config.get('server').host,
-            port: config.get('server').port
+            port: self.httpPort
         }));
         common.logging.info(common.i18n.t('notices.httpServer.urlConfiguredAs', {url: urlUtils.urlFor('home', true)}));
         common.logging.info(common.i18n.t('notices.httpServer.ctrlCToShutDown'));
